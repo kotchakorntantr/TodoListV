@@ -14,6 +14,7 @@ const apiUrl = "http://localhost:3000/tasks";
 const userId = JSON.parse(localStorage.getItem("user")).id;
 
 const handleLogout = () => {
+//   ลบแค่ status ของ user in localstorage
   localStorage.removeItem("user");
   router.push("/");
 };
@@ -80,7 +81,7 @@ const deleteTask = async (id) => {
         icon: "success",
         title: "Deleted!",
         text: "Your task has been deleted.",
-        timer: 1500,
+        timer: 2000,
         showConfirmButton: false,
       });
     }

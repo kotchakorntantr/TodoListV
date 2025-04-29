@@ -11,56 +11,8 @@ const email = ref("");
 const password = ref("");
 const name = ref("");
 
-const handleLogin = async () => {
-  if (!email.value.trim() || !password.value.trim()) {
-    Swal.fire({
-      icon: "warning",
-      title: "Missing Fields!",
-      text: "Please fill in all fields before logging in.",
-    });
-    return;
-  }
-  try {
-    console.log("Login clicked");
-    const hashedPassword = CryptoJS.SHA256(password.value).toString();
-    const response = await axios.get(
-      `http://localhost:3000/users?email=${email.value}&password=${hashedPassword}`
-    );
-    if (response.data.length > 0) {
-      const user = response.data[0];
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        })
-      );
-      Swal.fire({
-        icon: "success",
-        title: "Login Success!",
-        text: "Welcome to your TodoList",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      router.push("/main");
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "Login Failed!",
-        text: "Please try again.",
-      });
-    }
-  } catch (error) {
-    console.error(error);
-    Swal.fire({
-      icon: "error",
-      title: "Login Failed!",
-      text: "Please try again.",
-    });
-  }
-};
 
+// part signup + validate data
 const handleSignup = async () => {
   if (name.value === "" || email.value === "" || password.value === "") {
     Swal.fire({
@@ -128,6 +80,61 @@ const handleSignup = async () => {
     });
   }
 };
+
+
+// part login
+const handleLogin = async () => {
+  if (!email.value.trim() || !password.value.trim()) {
+    Swal.fire({
+      icon: "warning",
+      title: "Missing Fields!",
+      text: "Please fill in all fields before logging in.",
+    });
+    return;
+  }
+  try {
+    console.log("Login clicked");
+    const hashedPassword = CryptoJS.SHA256(password.value).toString();
+    const response = await axios.get(
+      `http://localhost:3000/users?email=${email.value}&password=${hashedPassword}`
+    );
+    if (response.data.length > 0) {
+      const user = response.data[0];
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        })
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Login Success!",
+        text: "Welcome to your TodoList",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      router.push("/main"); 
+    //   ถ้าlogin success จะลิ้งไปหน้า todolist
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed!",
+        text: "Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire({
+      icon: "error",
+      title: "Login Failed!",
+      text: "Please try again.",
+    });
+  }
+};
+
+
 </script>
 
 <template>
@@ -173,12 +180,12 @@ const handleSignup = async () => {
         </div>
 
         <div v-else>
-          <label class="label font-bold">Name or Username</label>
+          <label class="label font-bold">Name</label>
           <input
             v-model="name"
             type="text"
             class="input border mt-2 rounded-xl"
-            placeholder="Name or Username"
+            placeholder="Name"
             required
             minlength="6"
             maxlength="15"
