@@ -1,15 +1,49 @@
 <script setup>
-
+import axios from 'axios'
 import {ref} from 'vue'
-const isLogin = ref(true)
+import CryptoJS from 'crypto-js'
 
-const handleLogin = () => {
-  console.log('Login clicked')
+const isLogin = ref(true)
+const email = ref('')
+const password = ref('')
+const name = ref('')
+
+const handleLogin = async () => {
+    try {
+    console.log('Login clicked')    
+    const response = await axios.get(`http://localhost:3000/users?email=${email.value}&password=${password.value}`)
+    if (response.data.length > 0) {
+      alert('Login success!')
+    } else {
+      alert('Login failed!')
+    }
+  } catch (error) {
+    console.error(error)
+    alert('Login error!')
+  }
 
 }
 
-const handleSignup = () => {
+const handleSignup = async () => {
   console.log('Signup clicked')
+  try {
+    const hashedPassword = CryptoJS.SHA256(password.value).toString()
+    const newUser = {
+      name: name.value,
+      email: email.value,
+      password: hashedPassword
+    }
+    await axios.post('http://localhost:3000/users', newUser)
+    alert('Signup success!')
+    // clear form
+    name.value = ''
+    email.value = ''
+    password.value = ''
+    isLogin.value = true
+  } catch (error) {
+    console.error(error)
+    alert('Signup error!')
+  }
 }
 </script>
 
@@ -24,7 +58,9 @@ const handleSignup = () => {
             <label class="label font-bold ">Email</label>
             <input type="email" class="input border mt-2 rounded-xl" placeholder="Email" />
             <label class="label font-bold mt-2">Password</label>
-            <input type="password" class="input border mt-2 rounded-xl" placeholder="Password" />
+            <input type="password" class="input border mt-2 rounded-xl" required
+                minlength="6"
+                maxlength="10" placeholder="Password" />
             <div class="mt-2">
                 <a @click="isLogin = false" class="link link-hover ">Don't have an account?</a>
             </div>
@@ -35,11 +71,13 @@ const handleSignup = () => {
 
           <div v-else>
             <label class="label font-bold">Name or Username</label>
-            <input type="text" class="input border mt-2 rounded-xl" placeholder="Name or Username" />
+            <input v-model="name"  type="text" class="input border mt-2 rounded-xl" placeholder="Name or Username" />
             <label class="label font-bold mt-2">Email</label>
-            <input type="email" class="input border mt-2 rounded-xl" placeholder="Email" />
+            <input v-model="email" type="email" class="input border mt-2 rounded-xl" placeholder="Email" />
             <label class="label font-bold mt-2">Password</label>
-            <input type="password" class="input border mt-2 rounded-xl" placeholder="Password" />
+            <input v-model="password" type="password" class="input border mt-2 rounded-xl" required
+                minlength="6"
+                maxlength="10" placeholder="Password" />
             <div class="mt-2">
                 <a @click="isLogin = true" class="link link-hover ">Already have an account?</a>
             </div>
