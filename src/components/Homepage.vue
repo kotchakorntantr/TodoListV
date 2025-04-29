@@ -1,132 +1,133 @@
 <script setup>
-import axios from 'axios'
-import { ref } from 'vue'
-import CryptoJS from 'crypto-js'
-import Swal from 'sweetalert2'
-import { useRouter } from 'vue-router'
+import axios from "axios";
+import { ref } from "vue";
+import CryptoJS from "crypto-js";
+import Swal from "sweetalert2";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const isLogin = ref(true)
-const email = ref('')
-const password = ref('')
-const name = ref('')
+const router = useRouter();
+const isLogin = ref(true);
+const email = ref("");
+const password = ref("");
+const name = ref("");
 
 const handleLogin = async () => {
   if (!email.value.trim() || !password.value.trim()) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Missing Fields!',
-      text: 'Please fill in all fields before logging in.',
-    })
-    return
+      icon: "warning",
+      title: "Missing Fields!",
+      text: "Please fill in all fields before logging in.",
+    });
+    return;
   }
   try {
-    console.log('Login clicked')
-    const hashedPassword = CryptoJS.SHA256(password.value).toString()
+    console.log("Login clicked");
+    const hashedPassword = CryptoJS.SHA256(password.value).toString();
     const response = await axios.get(
-      `http://localhost:3000/users?email=${email.value}&password=${hashedPassword}`,
-    )
+      `http://localhost:3000/users?email=${email.value}&password=${hashedPassword}`
+    );
     if (response.data.length > 0) {
-      const user = response.data[0]
+      const user = response.data[0];
       localStorage.setItem(
-        'user',
+        "user",
         JSON.stringify({
           id: user.id,
           name: user.name,
           email: user.email,
-        }),
-      )
+        })
+      );
       Swal.fire({
-        icon: 'success',
-        title: 'Login Success!',
-        text: 'Welcome to your TodoList',
+        icon: "success",
+        title: "Login Success!",
+        text: "Welcome to your TodoList",
         timer: 2000,
         showConfirmButton: false,
-      })
-      router.push('/main')
+      });
+      router.push("/main");
     } else {
       Swal.fire({
-        icon: 'error',
-        title: 'Login Failed!',
-        text: 'Please try again.',
-      })
+        icon: "error",
+        title: "Login Failed!",
+        text: "Please try again.",
+      });
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
     Swal.fire({
-      icon: 'error',
-      title: 'Login Failed!',
-      text: 'Please try again.',
-    })
+      icon: "error",
+      title: "Login Failed!",
+      text: "Please try again.",
+    });
   }
-}
+};
 
 const handleSignup = async () => {
-  if (name.value === '' || email.value === '' || password.value === '') {
+  if (name.value === "" || email.value === "" || password.value === "") {
     Swal.fire({
-      icon: 'warning',
-      title: 'Missing Fields!',
-      text: 'Please fill in all fields before signing up..',
-    })
-    return
+      icon: "warning",
+      title: "Missing Fields!",
+      text: "Please fill in all fields before signing up..",
+    });
+    return;
   }
 
   if (password.value.length < 6 || password.value.length > 10) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Invalid Password!',
-      text: 'Password must be between 6 and 10 characters.',
-    })
-    return
+      icon: "warning",
+      title: "Invalid Password!",
+      text: "Password must be between 6 and 10 characters.",
+    });
+    return;
   }
 
   if (name.value.length < 6 || name.value.length > 15) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Invalid Name!',
-      text: 'Name must be between 6 and 15 characters.',
-    })
-    return
+      icon: "warning",
+      title: "Invalid Name!",
+      text: "Name must be between 6 and 15 characters.",
+    });
+    return;
   }
 
-  if (!email.value.includes('@') || !email.value.includes('.')) {
+  if (!email.value.includes("@") || !email.value.includes(".")) {
     Swal.fire({
-      icon: 'warning',
-      title: 'Invalid Email!',
-      text: 'Please enter a valid email address.',
-    })
-    return
+      icon: "warning",
+      title: "Invalid Email!",
+      text: "Please enter a valid email address.",
+    });
+    return;
   }
 
-  console.log('Signup clicked')
+  console.log("Signup clicked");
   try {
-    const hashedPassword = CryptoJS.SHA256(password.value).toString()
+    const hashedPassword = CryptoJS.SHA256(password.value).toString();
     const newUser = {
       name: name.value,
       email: email.value,
       password: hashedPassword,
-    }
-    await axios.post('http://localhost:3000/users', newUser)
+    };
+    await axios.post("http://localhost:3000/users", newUser);
     Swal.fire({
-      icon: 'success',
-      title: 'Signup Success!',
+      icon: "success",
+      title: "Signup Success!",
+      text: "Welcome to Login Page!",
       timer: 2000,
       showConfirmButton: false,
-    })
+    });
     // clear form
-    name.value = ''
-    email.value = ''
-    password.value = ''
-    isLogin.value = true
+    name.value = "";
+    email.value = "";
+    password.value = "";
+    isLogin.value = true;
   } catch (error) {
-    console.error(error)
+    console.error(error);
     Swal.fire({
-      icon: 'error',
-      title: 'Signup Failed!',
-      text: 'Please try again.',
-    })
+      icon: "error",
+      title: "Signup Failed!",
+      text: "Please try again.",
+    });
   }
-}
+};
 </script>
 
 <template>
@@ -157,12 +158,14 @@ const handleSignup = async () => {
             placeholder="Password"
           />
           <div class="mt-2">
-            <a @click="isLogin = false" class="link link-hover">Don't have an account?</a>
+            <a @click="isLogin = false" class="link link-hover"
+              >Don't have an account?</a
+            >
           </div>
           <div class="flex justify-center">
             <button
               @click="handleLogin"
-              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-200 hover:text-black item-center rounded-xl"
+              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-300 hover:text-black item-center rounded-xl"
             >
               Login
             </button>
@@ -201,12 +204,14 @@ const handleSignup = async () => {
             placeholder="Password"
           />
           <div class="mt-2">
-            <a @click="isLogin = true" class="link link-hover">Already have an account?</a>
+            <a @click="isLogin = true" class="link link-hover"
+              >Already have an account?</a
+            >
           </div>
           <div class="flex justify-center">
             <button
               @click="handleSignup"
-              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-200 hover:text-black item-center rounded-xl"
+              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-300 hover:text-black item-center rounded-xl"
             >
               Signup
             </button>
