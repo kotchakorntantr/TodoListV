@@ -10,6 +10,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.10",
     "@tailwindcss/cli": "^4.1.4",
     "@tailwindcss/vite": "^4.1.4",
     "axios": "^1.9.0",

@@ -1,16 +1,14 @@
 <script setup>
-import axios from "axios";
 import { ref } from "vue";
-import CryptoJS from "crypto-js";
 import Swal from "sweetalert2";
 import { useRouter } from "vue-router";
+import { supabase } from "../supabaseClient";
 
 const router = useRouter();
 const isLogin = ref(true);
 const email = ref("");
 const password = ref("");
 const name = ref("");
-
 
 // part signup + validate data
 const handleSignup = async () => {
@@ -52,13 +50,39 @@ const handleSignup = async () => {
 
   console.log("Signup clicked");
   try {
-    const hashedPassword = CryptoJS.SHA256(password.value).toString();
-    const newUser = {
-      name: name.value,
+    const { data, error: signupError } = await supabase.auth.signUp({
       email: email.value,
-      password: hashedPassword,
-    };
-    await axios.post("http://localhost:3000/users", newUser);
+      password: password.value,
+      options: {
+        data: {
+          name: name.value, // Store additional user data
+        },
+      },
+    });
+    if (signupError) {
+      console.error("Signup error:", signupError.message);
+      throw signupError;
+    }
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert([
+          { id: data.user.id, name: name.value }, // id คือ ID ของผู้ใช้ที่ Supabase Auth สร้าง
+        ]);
+      if (profileError) {
+        console.error("Error inserting profile data:", profileError.message);
+        Swal.fire({
+          icon: "error",
+          title: "Signup Failed!",
+          text: "Error saving user profile. Please try again or contact support.",
+        });
+        return; // หยุดการทำงานถ้าบันทึก profile ไม่สำเร็จ
+      }
+    } else {
+      successMessage =
+        "Signup Success! Please check your email to confirm your account before logging in.";
+    }
+
     Swal.fire({
       icon: "success",
       title: "Signup Success!",
@@ -81,7 +105,6 @@ const handleSignup = async () => {
   }
 };
 
-
 // part login
 const handleLogin = async () => {
   if (!email.value.trim() || !password.value.trim()) {
@@ -94,20 +117,44 @@ const handleLogin = async () => {
   }
   try {
     console.log("Login clicked");
-    const hashedPassword = CryptoJS.SHA256(password.value).toString();
-    const response = await axios.get(
-      `http://localhost:3000/users?email=${email.value}&password=${hashedPassword}`
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword(
+      {
+        email: email.value,
+        password: password.value,
+      }
     );
-    if (response.data.length > 0) {
-      const user = response.data[0];
+
+    if (signInError) {
+      console.error("Supabase login error:", signInError.message);
+      throw signInError;
+    }
+    if (data.user) {
+      // ถ้า data.user มีค่า = Login สำเร็จ
+      // ดึงข้อมูล Profile จากตาราง profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", data.user.id)
+        .single();
+      if (profileError) {
+        console.error("Error fetching profile data:", profileError.message);
+        Swal.fire({
+          icon: "warning",
+          title: "Profile Error!",
+          text: "Could not load user profile. Displaying default name.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      }
       localStorage.setItem(
         "user",
         JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
+          id: data.user.id,
+          name: profileData ? profileData.name : "User",
         })
       );
+
       Swal.fire({
         icon: "success",
         title: "Login Success!",
@@ -115,13 +162,12 @@ const handleLogin = async () => {
         timer: 2000,
         showConfirmButton: false,
       });
-      router.push("/main"); 
-    //   ถ้าlogin success จะลิ้งไปหน้า todolist
+      router.push("/main");
     } else {
       Swal.fire({
         icon: "error",
         title: "Login Failed!",
-        text: "Please try again.",
+        text: "An unexpected error occurred. Please try again.",
       });
     }
   } catch (error) {
@@ -129,12 +175,10 @@ const handleLogin = async () => {
     Swal.fire({
       icon: "error",
       title: "Login Failed!",
-      text: "Please try again.",
+      text: error.message || "Invalid credentials. Please try again.",
     });
   }
 };
-
-
 </script>
 
 <template>

@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
 import Swal from "sweetalert2";
+import { supabase } from "../supabaseClient.js";
 
 const user = ref({});
 const name = ref("");
@@ -10,53 +10,92 @@ const router = useRouter();
 
 const newTask = ref("");
 const tasks = ref([]);
-const apiUrl = "http://localhost:3000/tasks";
-const userId = JSON.parse(localStorage.getItem("user")).id;
+const userId = ref(null); //use ref for reactivity
 
+onMounted(async () => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    user.value = JSON.parse(storedUser);
+    name.value = user.value.name;
+    userId.value = user.value.id; 
+    if (!userId.value) {
+      router.push("/"); //if no userId, redirect to login
+    } else {
+      await getTasks(); // fetch tasks for the user
+    }
+  } else {
+    console.error("No user found in local storage");
+    router.push("/");
+  }
+});
 const handleLogout = () => {
-//   ลบแค่ status ของ user in localstorage
+  // ลบแค่ status ของ user in localstorage
   localStorage.removeItem("user");
   router.push("/");
 };
 
 const getTasks = async () => {
+  if (!userId.value) return;
   try {
-    const response = await axios.get(
-      `http://localhost:3000/tasks?userId=${userId}`
-    );
-    tasks.value = response.data;
+    const { data, error } = await supabase
+      .from("todos") //table name
+      .select("*")
+      .eq("userId", userId.value) // filter by userId
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    tasks.value = data;
   } catch (error) {
-    console.error("Error fetching tasks:", error);
+    console.error("Failed to fetch tasks:", error.message);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to load tasks!",
+    });
   }
 };
 
 const addTask = async () => {
-  if (newTask.value.trim() !== "") {
-    try {
-      const newTaskData = {
-        text: newTask.value.trim(),
-        done: false,
-        userId: userId, // ผูก task กับ user id
-      };
-      const response = await axios.post(
-        "http://localhost:3000/tasks",
-        newTaskData
-      );
-      tasks.value.push(response.data);
-      newTask.value = "";
-    } catch (error) {
-      console.error("Failed to add task:", error);
-    }
+  if (!newTask.value.trim() || !userId.value) return;
+  try {
+    const newTaskData = {
+      task: newTask.value.trim(),
+      is_complete: false,
+      userId: userId.value, // ผูก task กับ userId
+    };
+    const { data, error } = await supabase
+      .from("todos")
+      .insert(newTaskData)
+      .select(); 
+
+    if (error) throw error;
+    tasks.value.unshift(data[0]); // เพิ่มข้อมูลที่ Supabase คืนกลับมา
+    newTask.value = ""; 
+  } catch (error) {
+    console.error("Failed to add task:", error.message);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to add task!",
+    });
   }
 };
 const toggleTask = async (task) => {
   try {
-    await axios.patch(`${apiUrl}/${task.id}`, {
-      done: !task.done,
-    });
-    task.done = !task.done;
+    const { error } = await supabase
+      .from("todos")
+      .update({ is_complete: !task.is_complete }) // อัปเดตคอลัมน์ 'is_complete'
+      .eq("id", task.id); // อัปเดตตาม id ของ task
+
+    if (error) throw error;
+    task.is_complete = !task.is_complete; 
   } catch (error) {
-    console.error("Failed to toggle task:", error);
+    console.error("Failed to toggle task:", error.message);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Failed to toggle task status!",
+    });
   }
 };
 
@@ -73,8 +112,8 @@ const deleteTask = async (id) => {
       cancelButtonText: "Cancel",
     });
     if (result.isConfirmed) {
-      // กดยืนยันแล้วค่อยลบจริง
-      await axios.delete(`${apiUrl}/${id}`);
+      const { error } = await supabase.from("todos").delete().eq("id", id); // ลบตาม id ของ task
+      if (error) throw error;
       tasks.value = tasks.value.filter((task) => task.id !== id);
 
       await Swal.fire({
@@ -86,7 +125,7 @@ const deleteTask = async (id) => {
       });
     }
   } catch (error) {
-    console.error("Failed to delete task:", error);
+    console.error("Failed to delete task:", error.message);
     Swal.fire({
       icon: "error",
       title: "Oops...",
@@ -94,22 +133,6 @@ const deleteTask = async (id) => {
     });
   }
 };
-
-onMounted(async () => {
-  if (!userId) {
-    // ถ้าไม่มี userId -> logout กลับไปหน้า login
-    router.push("/");
-  } else {
-    await getTasks();
-  }
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    user.value = JSON.parse(storedUser);
-    name.value = user.value.name;
-  } else {
-    console.error("No user found in local storage");
-  }
-});
 </script>
 
 <template>
@@ -201,13 +224,17 @@ onMounted(async () => {
         class="flex justify-between items-center p-2 border rounded-md bg-gray-50"
       >
         <div
-          :class="{ 'line-through text-gray-400': task.done }"
+          :class="{ 'line-through text-gray-400': task.is_complete }"
           class="cursor-pointer"
           @click="toggleTask(task)"
         >
-          {{ task.text }}
+          {{ task.task }}
         </div>
-        <button @click="deleteTask(task.id)" class="text-red-500 hover:text-red-700"> ✕
+        <button
+          @click="deleteTask(task.id)"
+          class="text-red-500 hover:text-red-700"
+        >
+          ✕
         </button>
       </li>
     </ul>
