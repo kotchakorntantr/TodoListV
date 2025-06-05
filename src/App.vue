@@ -1,11 +1,9 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-
+import { RouterLink, RouterView } from "vue-router";
 </script>
 
 <template>
-  <div class="bg-[#FEEE91]/30 min-h-screen">
-      <RouterView />
+  <div class="bg-white min-h-screen">
+    <RouterView />
   </div>
- 
 </template>
