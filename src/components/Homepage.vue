@@ -182,8 +182,8 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="hero bg-base-200 min-h-screen">
-    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+  <div class="hero bg-base-200 min-h-screen px-6 ">
+    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl rounded-2xl">
       <div class="card-body">
         <div>
           <h2 class="text-center font-bold text-2xl">Todo List</h2>

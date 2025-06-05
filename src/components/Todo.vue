@@ -141,7 +141,7 @@ const deleteTask = async (id) => {
     <div class="text-3xl font-bold text-center">Hello, {{ name }}</div>
     <div class="flex flex-col items-center justify-center mt-8">
       <ul class="menu menu-horizontal bg-base-200 rounded-box">
-        <li class="hover:bg-blue-300 bg-[#FEEE91]" @click="handleLogout">
+        <li class="hover:bg-[#C4E1F6] bg-[#FEEE91]" @click="handleLogout">
           <a>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -159,7 +159,7 @@ const deleteTask = async (id) => {
             </svg>
           </a>
         </li>
-        <li class="hover:bg-blue-300 bg-[#FFBD73]">
+        <li class="hover:bg-[#C4E1F6] bg-[#FFBD73]">
           <a>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -177,7 +177,7 @@ const deleteTask = async (id) => {
             </svg>
           </a>
         </li>
-        <li class="hover:bg-blue-300 bg-[#FF9D3D]">
+        <li class="hover:bg-[#C4E1F6] bg-[#FF9D3D]">
           <a>
             <svg
               xmlns="http://www.w3.org/2000/svg"
