@@ -117,7 +117,6 @@ const handleLogin = async () => {
   }
   try {
     console.log("Login clicked");
-
     const { data, error: signInError } = await supabase.auth.signInWithPassword(
       {
         email: email.value,
@@ -216,7 +215,7 @@ const handleLogin = async () => {
           <div class="flex justify-center">
             <button
               @click="handleLogin"
-              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-300 hover:text-black item-center rounded-xl"
+              class="bg-black text-white w-full mt-4 py-1 hover:bg-[#C4E1F6] hover:text-black item-center rounded-xl"
             >
               Login
             </button>
@@ -262,7 +261,7 @@ const handleLogin = async () => {
           <div class="flex justify-center">
             <button
               @click="handleSignup"
-              class="bg-black text-white w-full mt-4 py-1 hover:bg-blue-300 hover:text-black item-center rounded-xl"
+              class="bg-black text-white w-full mt-4 py-1 hover:bg-[#C4E1F6] hover:text-black item-center rounded-xl"
             >
               Signup
             </button>

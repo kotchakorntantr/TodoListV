@@ -198,7 +198,7 @@ const deleteTask = async (id) => {
       </ul>
     </div>
 
-    <div class="flex justify-center items-center mt-6 px-4">
+    <div class="flex justify-center items-center mt-6 px-4"> 
     <div class="w-full md:w-3/4 lg:w-1/2 xl:w-2/3 2xl:w-[500px] mx-auto mt-10 p-6 bg-[#C4E1F6] rounded-xl shadow-lg space-y-4">
       <h2 class="text-2xl font-bold text-center">My Todo Lists</h2>
 
@@ -218,7 +218,7 @@ const deleteTask = async (id) => {
         </button>
       </div>
 
-      <ul class="space-y-2">
+      <ul class="space-y-2 max-h-60 overflow-y-auto hide-scrollbar">
         <li
           v-for="task in tasks"
           :key="task.id"
@@ -231,6 +231,7 @@ const deleteTask = async (id) => {
           >
             {{ task.task }}
           </div>
+          
           <button
             @click="deleteTask(task.id)"
             class="text-red-500 hover:text-red-700"
@@ -243,3 +244,13 @@ const deleteTask = async (id) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; 
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;  
+}
+</style>
